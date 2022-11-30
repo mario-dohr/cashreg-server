@@ -1,4 +1,4 @@
-package at.marido.chashregserver.controller;
+package at.marido.chashregserver.dto;
 import java.math.BigDecimal;
 import java.util.List;
 

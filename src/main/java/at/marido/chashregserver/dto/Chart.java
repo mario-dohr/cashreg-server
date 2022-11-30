@@ -1,4 +1,4 @@
-package at.marido.chashregserver.controller;
+package at.marido.chashregserver.dto;
 
 public record Chart(String type, ChartData data) {
 

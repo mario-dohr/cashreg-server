@@ -12,6 +12,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -19,11 +20,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "Beleg")
-public class BelegEntity {
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+public class BelegEntity extends EntityBase {
 
 	@Column(name = "belegnr")
 	private String belegNr;
@@ -34,8 +31,8 @@ public class BelegEntity {
 	@Column(name = "uhrzeit")
 	private LocalTime uhrzeit;
 
-	@Column(name = "mitarbeiter")
-	private String mitarbeiter;
+	@ManyToOne
+	private MitarbeiterEntity mitarbeiter;
 
 	@Column(name = "gesamtbetrag")
 	private BigDecimal gesamtbetrag;
@@ -46,14 +43,6 @@ public class BelegEntity {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "beleg")
 	@JsonManagedReference
 	private Set<BelegZeileEntity> belegZeilen = new HashSet<>();
-
-	public long getId() {
-		return this.id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
 
 	public String getBelegNr() {
 		return this.belegNr;
@@ -79,13 +68,6 @@ public class BelegEntity {
 		this.uhrzeit = uhrzeit;
 	}
 
-	public String getMitarbeiter() {
-		return this.mitarbeiter;
-	}
-
-	public void setMitarbeiter(String mitarbeiter) {
-		this.mitarbeiter = mitarbeiter;
-	}
 
 	public BigDecimal getGesamtbetrag() {
 		return this.gesamtbetrag;
@@ -105,6 +87,14 @@ public class BelegEntity {
 
 	public Set<BelegZeileEntity> getBelegZeilen() {
 		return this.belegZeilen;
+	}
+
+	public MitarbeiterEntity getMitarbeiter() {
+		return mitarbeiter;
+	}
+
+	public void setMitarbeiter(MitarbeiterEntity mitarbeiter) {
+		this.mitarbeiter = mitarbeiter;
 	}
 
 }

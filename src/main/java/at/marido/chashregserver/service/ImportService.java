@@ -23,7 +23,9 @@ import org.springframework.stereotype.Service;
 
 import at.marido.chashregserver.entity.BelegEntity;
 import at.marido.chashregserver.entity.BelegZeileEntity;
+import at.marido.chashregserver.entity.MitarbeiterEntity;
 import at.marido.chashregserver.repository.BelegRepository;
+import at.marido.chashregserver.repository.MitarbeiterRepository;
 
 @Service
 public class ImportService {
@@ -31,6 +33,9 @@ public class ImportService {
 	@Autowired
 	private BelegRepository belegRepository;
 
+	@Autowired
+	private MitarbeiterRepository mitarbeiterRepository;
+	
 	private Pattern datumUhrzeitPattern = Pattern
 			.compile("(\\w*)\\s*(\\d{1,2}-\\d{1,2}-\\d{1,2})\\s*(\\d{1,2}:\\d{1,2}:\\d{1,2})");
 	private Pattern belegNrUndNamePattern = Pattern.compile(".(\\d*)\\s*([\\w\\d]*)\\s*([\\w\\s\\.]+)\\s*");
@@ -110,7 +115,7 @@ public class ImportService {
 		Optional<MatchResult> matchResult = searchPattern(this.belegNrUndNamePattern, linesQueue);
 		if (matchResult.isPresent()) {
 			beleg.setBelegNr(matchResult.get().group(1));
-			beleg.setMitarbeiter(matchResult.get().group(3).trim());
+			beleg.setMitarbeiter(findMitarbeiter(matchResult.get().group(3).trim()));
 			return true;
 		}
 		return false;
@@ -185,4 +190,14 @@ public class ImportService {
 	private BigDecimal toBetrag(String s) {
 		return BigDecimal.valueOf(Double.parseDouble(s.replace(',', '.')));
 	}
+	
+	private MitarbeiterEntity findMitarbeiter(String benutzerId) {
+		MitarbeiterEntity result = mitarbeiterRepository.findByBenutzerId(benutzerId);
+		if (result == null) {
+			result = new MitarbeiterEntity();
+			result.setBenutzerId(benutzerId);
+		}
+		return result;
+	}
+	
 }

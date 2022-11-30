@@ -7,8 +7,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -16,6 +18,10 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -28,6 +34,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import at.marido.chashregserver.dto.Chart;
+import at.marido.chashregserver.dto.ChartData;
+import at.marido.chashregserver.dto.ChartDataset;
 import at.marido.chashregserver.entity.BelegEntity;
 import at.marido.chashregserver.repository.BelegRepository;
 import at.marido.chashregserver.service.ImportService;
@@ -49,11 +58,22 @@ public class BelegController {
 	}
 
 	@GetMapping("/belege")
-	public ResponseEntity<List<BelegEntity>> getBelege() {
-		List<BelegEntity> result = new ArrayList<>();
-		this.belegRepository.findAll().forEach(result::add);
-
-		return new ResponseEntity<>(result, HttpStatus.OK);
+	public ResponseEntity<HashMap<String,Object>> getBelege(@RequestParam(name = "page",required = false) Integer page,@RequestParam(name = "von",required = false) String von,
+			@RequestParam(name = "bis",required = false) String bis) {
+		List<BelegEntity> belege = new ArrayList<>();
+		Pageable pageAble = PageRequest.of(page == null ? 0 : page, 15, Sort.by(Direction.ASC, "belegNr"));
+		LocalDate datVon = isEmpty(von) ? LocalDate.of(1900, 1, 1) : toDate(von);
+		LocalDate datBis = isEmpty(bis) ? LocalDate.of(2100, 12, 31) : toDate(bis);
+		long count = this.belegRepository.countByDatumBetween(datVon,datBis);
+		this.belegRepository.findAllByDatumBetween(datVon,datBis, pageAble).forEach(belege::add);
+        
+		var result = new HashMap<String,Object>();
+		result.put("count", count);
+		result.put("data", belege);
+		var resultEntity = new ResponseEntity<>(result, HttpStatus.OK);
+		System.out.println(datVon);
+		System.out.println(datBis);
+		return resultEntity;
 	}
 
 	@GetMapping("/belege/{id}")
@@ -107,7 +127,7 @@ public class BelegController {
 			}
 
 			// Copy file to the target location (Replacing existing file with the same name)
-			Path fileStorageLocation = Paths.get("/uploads").toAbsolutePath().normalize();
+			Path fileStorageLocation = Paths.get("/home/mario/Projects/cashreg/uploads").toAbsolutePath().normalize();
 			Path targetLocation = fileStorageLocation.resolve(fileName);
 			Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
@@ -131,5 +151,12 @@ public class BelegController {
 		public void setFileName(String fileName) {
 			this.fileName = fileName;
 		}
+	}
+	private boolean isEmpty(String s) {
+		return org.apache.commons.lang3.StringUtils.isBlank(s);
+	}
+	private LocalDate toDate(String s) {
+		String[] dateParts = s.split("-");
+		return LocalDate.of(Integer.parseInt(dateParts[0]),Integer.parseInt(dateParts[1]),Integer.parseInt(dateParts[2]));
 	}
 }

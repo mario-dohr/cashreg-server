@@ -15,10 +15,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "Beleg_Zeile")
-public class BelegZeileEntity {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+public class BelegZeileEntity extends EntityBase {
 
 	@Column(name = "produkt")
 	private String produkt;
@@ -30,13 +27,6 @@ public class BelegZeileEntity {
 	@JsonBackReference
 	private BelegEntity beleg;
 
-	public long getId() {
-		return this.id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
 
 	public String getProdukt() {
 		return this.produkt;
